@@ -64,5 +64,24 @@ object InteractorsModule {
         )
     }
 
+    @ViewModelScoped
+    @Provides
+    fun provideGetOrderDetails(
+        firestore: FirestoreDatasource
+    ): GetOrderDetails {
+        return GetOrderDetails(
+            firestore = firestore
+        )
+    }
+    @ViewModelScoped
+    @Provides
+    fun provideUpdateOrderStatus(
+        firestore: FirestoreDatasource
+    ): UpdateOrderStatus {
+        return UpdateOrderStatus(
+            firestore = firestore
+        )
+    }
+
 
 }

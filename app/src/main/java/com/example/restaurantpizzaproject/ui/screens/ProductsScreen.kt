@@ -26,6 +26,8 @@ fun ProductsScreen(
     editing: MutableState<Product?>
 ) {
 
+    val textFieldToShow = remember { mutableStateOf(Categories.PIZZAS) }
+
     Column() {
 
         val grouped = products!!.groupBy { it.categoryOrder }
@@ -34,7 +36,8 @@ fun ProductsScreen(
             LazyColumnHeader(
                 text = Categories.PIZZAS,
                 viewModel = viewModel,
-                context = context
+                context = context,
+                textFieldToShow = textFieldToShow
             )
         }
         if (products.isNotEmpty()) {
@@ -56,7 +59,8 @@ fun ProductsScreen(
             LazyColumnHeader(
                 text = Categories.DESSERT,
                 viewModel = viewModel,
-                context = context
+                context = context,
+                textFieldToShow = textFieldToShow
             )
         }
         if (products.isNotEmpty()) {
@@ -78,7 +82,8 @@ fun ProductsScreen(
             LazyColumnHeader(
                 text = Categories.DRINKS,
                 viewModel = viewModel,
-                context = context
+                context = context,
+                textFieldToShow = textFieldToShow
             )
         }
         if (products.isNotEmpty()) {

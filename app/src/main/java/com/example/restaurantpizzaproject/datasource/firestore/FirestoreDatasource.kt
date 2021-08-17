@@ -16,4 +16,8 @@ interface FirestoreDatasource {
 
     fun getCancelledAndDeliveredOrders() : Flow<List<Order>?>
 
+    suspend fun getOrderDetails(orderId: String) : Order?
+
+    suspend fun updateOrderStatus(id: String, orderHashMap: HashMap<String, Any>)
+
 }

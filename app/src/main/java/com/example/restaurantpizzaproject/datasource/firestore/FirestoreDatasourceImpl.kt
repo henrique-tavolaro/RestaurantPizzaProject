@@ -10,10 +10,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 const val PRODUCTS = "Product"
 const val ORDERS = "Orders"
+const val STATUS = "status"
 
 @ExperimentalCoroutinesApi
 class FirestoreDatasourceImpl @Inject constructor(
@@ -59,7 +61,7 @@ class FirestoreDatasourceImpl @Inject constructor(
     override fun getOpenOrders(): Flow<List<Order>?> = callbackFlow{
         val collection = firestore
             .collection(ORDERS)
-            .whereIn(ORDERS, listOf(OrderStatus.OPEN, OrderStatus.ACCEPTED))
+            .whereIn(STATUS, listOf(OrderStatus.OPEN, OrderStatus.ACCEPTED))
 
         val snapshotListener = collection.addSnapshotListener() { snapshot, _ ->
             this.trySend(snapshot!!.toObjects(Order::class.java)).isSuccess
@@ -74,7 +76,7 @@ class FirestoreDatasourceImpl @Inject constructor(
     override fun getCancelledAndDeliveredOrders(): Flow<List<Order>?> = callbackFlow {
         val collection = firestore
             .collection(ORDERS)
-            .whereIn(ORDERS, listOf(OrderStatus.CANCELLEDBYCLIENT, OrderStatus.CANCELLEDBYRESTAURANT, OrderStatus.DELIVERED))
+            .whereIn(STATUS, listOf(OrderStatus.CANCELLEDBYCLIENT, OrderStatus.CANCELLEDBYRESTAURANT, OrderStatus.DELIVERED))
 
         val snapshotListener = collection.addSnapshotListener() { snapshot, _ ->
             this.trySend(snapshot!!.toObjects(Order::class.java)).isSuccess
@@ -83,7 +85,28 @@ class FirestoreDatasourceImpl @Inject constructor(
         awaitClose {
             snapshotListener.remove()
         }
+    }
 
+    override suspend fun getOrderDetails(orderId: String) : Order? {
+        return firestore
+            .collection(ORDERS)
+            .document(orderId)
+            .get()
+            .await()
+            .toObject(Order::class.java)
+    }
+
+    override suspend fun updateOrderStatus(id: String, orderHashMap: HashMap<String, Any>) {
+        firestore
+            .collection(ORDERS)
+            .document(id)
+            .set(orderHashMap, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d("TAG1", "success")
+            }
+            .addOnFailureListener{
+                Log.d("TAG1", "failure")
+            }
     }
 
 }

@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,14 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.compose.*
 import com.example.restaurantpizzaproject.domain.models.Order
 import com.example.restaurantpizzaproject.domain.models.Product
 import com.example.restaurantpizzaproject.ui.PizzariaViewModel
 import com.example.restaurantpizzaproject.ui.navigation.Screen
+import com.example.restaurantpizzaproject.ui.screens.OrderDetails
 import com.example.restaurantpizzaproject.ui.screens.OrdersHistoryScreen
 import com.example.restaurantpizzaproject.ui.screens.OrdersScreen
 import com.example.restaurantpizzaproject.ui.screens.ProductsScreen
@@ -44,10 +44,12 @@ class MainActivity : ComponentActivity() {
 
             val navController = rememberNavController()
             val editing = mutableStateOf<Product?>(null)
-
+            val bottomBarVisibility = viewModel.bottomBarVisibility
             val products = viewModel.getProductList().collectAsState(initial = null).value
             val openOrders = viewModel.getOpenOrders().collectAsState(initial = null).value
             val cancelledAndDeliveredOrders = viewModel.getCancelledAndDeliveredOrders().collectAsState(initial = null).value
+
+
 
             RestaurantPizzaProjectTheme {
 
@@ -66,8 +68,9 @@ class MainActivity : ComponentActivity() {
                         },
                         bottomBar = {
 
-                                BottomNavigationBar(navController = navController)
-
+                                AnimatedVisibility(visible = bottomBarVisibility.value) {
+                                    BottomNavigationBar(navController = navController)
+                                }
                         }
                     ) {
                         Navigation(
@@ -77,7 +80,8 @@ class MainActivity : ComponentActivity() {
                             context = this,
                             editing = editing,
                             openOrders = openOrders,
-                            cancelledAndDeliveredOrders = cancelledAndDeliveredOrders
+                            cancelledAndDeliveredOrders = cancelledAndDeliveredOrders,
+                            bottomBarVisibility = bottomBarVisibility
                         )
                     }
                 }
@@ -86,6 +90,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @Composable
@@ -97,16 +102,22 @@ fun Navigation(
     editing: MutableState<Product?>,
     openOrders: List<Order>?,
     cancelledAndDeliveredOrders: List<Order>?,
+    bottomBarVisibility: MutableState<Boolean>
 ) {
     NavHost(navController, startDestination = Screen.OpenOrdersScreen.route) {
         composable(Screen.OpenOrdersScreen.route) {
             OrdersScreen(
-                openOrders = openOrders
+                openOrders = openOrders,
+                navController = navController,
+                bottomBarVisibility = bottomBarVisibility
             )
         }
-        composable(Screen.OrdersHistoryScreen.route) {
+        composable(
+            Screen.OrdersHistoryScreen.route) {
             OrdersHistoryScreen(
-                cancelledAndDeliveredOrders = cancelledAndDeliveredOrders
+                cancelledAndDeliveredOrders = cancelledAndDeliveredOrders,
+                navController = navController,
+                bottomBarVisibility = bottomBarVisibility
             )
         }
         composable(Screen.ProductsScreen.route) {
@@ -116,6 +127,19 @@ fun Navigation(
                 context = context,
                 editing = editing
             )
+        }
+        composable(
+            Screen.OrderDetails.route,
+            arguments = listOf(
+                navArgument("orderId"){
+                    type = NavType.StringType
+                }
+            )
+        ) {
+           OrderDetails(
+               orderId = it.arguments?.getString("orderId"),
+               viewModel = viewModel,
+           bottomBarVisibility = bottomBarVisibility)
         }
     }
 }
@@ -128,33 +152,26 @@ fun BottomNavigationBar(navController: NavController) {
         Screen.ProductsScreen,
     )
     BottomNavigation(
-//        backgroundColor = colorResource(id = MaterialTheme.colors.primary),
         contentColor = Color.White
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
         items.forEach { item ->
             BottomNavigationItem(
-                icon = { Icon(imageVector = Icons.Filled.ProductionQuantityLimits, contentDescription = "icon") },
-                label = { Text(text = item.route) },
+                icon = { Icon(imageVector = item.icon!!, contentDescription = "icon") },
+                label = { Text(text = item.name!!) },
                 selectedContentColor = Color.White,
                 unselectedContentColor = Color.White.copy(0.4f),
                 alwaysShowLabel = true,
                 selected = currentRoute == item.route,
                 onClick = {
                     navController.navigate(item.route) {
-                        // Pop up to the start destination of the graph to
-                        // avoid building up a large stack of destinations
-                        // on the back stack as users select items
                         navController.graph.startDestinationRoute?.let { route ->
                             popUpTo(route) {
                                 saveState = true
                             }
                         }
-                        // Avoid multiple copies of the same destination when
-                        // reselecting the same item
                         launchSingleTop = true
-                        // Restore state when reselecting a previously selected item
                         restoreState = true
                     }
                 }

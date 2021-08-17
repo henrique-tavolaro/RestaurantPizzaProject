@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -37,7 +38,8 @@ import java.util.*
 fun LazyColumnHeader(
     text: String,
     viewModel: PizzariaViewModel,
-    context: Context
+    context: Context,
+    textFieldToShow: MutableState<String>
 ) {
     val textFieldVisibility = remember { mutableStateOf(false) }
     val productText = viewModel.textFieldProduct
@@ -67,13 +69,20 @@ fun LazyColumnHeader(
             )
             IconButton(
                 onClick = {
+                    if(!textFieldVisibility.value) textFieldToShow.value = text
                     textFieldVisibility.value = !textFieldVisibility.value
+
                 }) {
-                if( textFieldVisibility.value)  Icon(Icons.Filled.ExpandLess, contentDescription = "Close add product icon") else
-                Icon(Icons.Filled.Add, contentDescription = "Add product icon")
+                if(!textFieldVisibility.value || textFieldToShow.value != text) {
+                    Icon(Icons.Filled.Add, contentDescription = "Add product icon")
+                    textFieldVisibility.value = false
+                }
+                else
+                    Icon(Icons.Filled.ExpandLess, contentDescription = "Close add product icon")
+
             }
         }
-        AnimatedVisibility(visible = textFieldVisibility.value) {
+        AnimatedVisibility(visible = textFieldVisibility.value && textFieldToShow.value == text) {
             Card(
                 modifier = Modifier
                     .height(60.dp),
