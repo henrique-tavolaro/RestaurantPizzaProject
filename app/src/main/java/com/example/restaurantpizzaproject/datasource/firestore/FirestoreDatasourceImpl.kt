@@ -82,9 +82,9 @@ class FirestoreDatasourceImpl @Inject constructor(
             this.trySend(snapshot!!.toObjects(Order::class.java)).isSuccess
         }
 
-        awaitClose {
-            snapshotListener.remove()
-        }
+            awaitClose {
+                snapshotListener.remove()
+            }
     }
 
     override suspend fun getOrderDetails(orderId: String) : Order? {
@@ -96,16 +96,24 @@ class FirestoreDatasourceImpl @Inject constructor(
             .toObject(Order::class.java)
     }
 
-    override suspend fun updateOrderStatus(id: String, orderHashMap: HashMap<String, Any>) {
+    override suspend fun updateOrderStatus(
+        id: String,
+        orderHashMap: HashMap<String, Any>,
+        onSuccess: () -> Unit,
+        onFailure: () -> Unit,
+    ) {
         firestore
             .collection(ORDERS)
             .document(id)
             .set(orderHashMap, SetOptions.merge())
             .addOnSuccessListener {
-                Log.d("TAG1", "success")
+                Log.d("TAGA", "foi")
+                onSuccess()
             }
             .addOnFailureListener{
-                Log.d("TAG1", "failure")
+
+                Log.d("TAGA", "naõ foi")
+                onFailure()
             }
     }
 

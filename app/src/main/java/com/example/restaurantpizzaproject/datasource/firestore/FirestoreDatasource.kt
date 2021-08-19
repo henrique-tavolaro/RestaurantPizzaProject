@@ -18,6 +18,11 @@ interface FirestoreDatasource {
 
     suspend fun getOrderDetails(orderId: String) : Order?
 
-    suspend fun updateOrderStatus(id: String, orderHashMap: HashMap<String, Any>)
+    suspend fun updateOrderStatus(
+        id: String,
+        orderHashMap: HashMap<String, Any>,
+        onSuccess: () -> Unit,
+        onFailure: () -> Unit,
+    )
 
 }

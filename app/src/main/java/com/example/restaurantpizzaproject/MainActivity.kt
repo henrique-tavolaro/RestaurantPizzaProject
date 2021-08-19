@@ -30,6 +30,8 @@ import com.example.restaurantpizzaproject.ui.screens.OrdersScreen
 import com.example.restaurantpizzaproject.ui.screens.ProductsScreen
 import com.example.restaurantpizzaproject.ui.theme.RestaurantPizzaProjectTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
@@ -48,8 +50,6 @@ class MainActivity : ComponentActivity() {
             val products = viewModel.getProductList().collectAsState(initial = null).value
             val openOrders = viewModel.getOpenOrders().collectAsState(initial = null).value
             val cancelledAndDeliveredOrders = viewModel.getCancelledAndDeliveredOrders().collectAsState(initial = null).value
-
-
 
             RestaurantPizzaProjectTheme {
 
@@ -102,14 +102,16 @@ fun Navigation(
     editing: MutableState<Product?>,
     openOrders: List<Order>?,
     cancelledAndDeliveredOrders: List<Order>?,
-    bottomBarVisibility: MutableState<Boolean>
+    bottomBarVisibility: MutableState<Boolean>,
 ) {
     NavHost(navController, startDestination = Screen.OpenOrdersScreen.route) {
         composable(Screen.OpenOrdersScreen.route) {
             OrdersScreen(
                 openOrders = openOrders,
                 navController = navController,
-                bottomBarVisibility = bottomBarVisibility
+                bottomBarVisibility = bottomBarVisibility,
+                viewModel = viewModel,
+                context = context
             )
         }
         composable(
@@ -117,7 +119,9 @@ fun Navigation(
             OrdersHistoryScreen(
                 cancelledAndDeliveredOrders = cancelledAndDeliveredOrders,
                 navController = navController,
-                bottomBarVisibility = bottomBarVisibility
+                bottomBarVisibility = bottomBarVisibility,
+                viewModel = viewModel,
+                context = context
             )
         }
         composable(Screen.ProductsScreen.route) {
@@ -139,7 +143,8 @@ fun Navigation(
            OrderDetails(
                orderId = it.arguments?.getString("orderId"),
                viewModel = viewModel,
-           bottomBarVisibility = bottomBarVisibility)
+           bottomBarVisibility = bottomBarVisibility,
+           context = context)
         }
     }
 }
@@ -165,15 +170,7 @@ fun BottomNavigationBar(navController: NavController) {
                 alwaysShowLabel = true,
                 selected = currentRoute == item.route,
                 onClick = {
-                    navController.navigate(item.route) {
-                        navController.graph.startDestinationRoute?.let { route ->
-                            popUpTo(route) {
-                                saveState = true
-                            }
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    navController.navigate(item.route)
                 }
             )
         }

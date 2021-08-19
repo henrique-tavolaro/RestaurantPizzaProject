@@ -5,6 +5,7 @@ import com.example.restaurantpizzaproject.datasource.firestore.order1
 import com.example.restaurantpizzaproject.datasource.firestore.order2
 import com.example.restaurantpizzaproject.domain.models.Order
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
@@ -26,14 +27,16 @@ class GetOrderDetailsTest{
     fun `should get the order details and emit`() = runBlocking {
         assert(firestore.orderList.isEmpty())
 
-        firestore.addOrder(order1)
-        firestore.addOrder(order2)
+        firestore.addOrder(order1, order2)
 
-        var order : Order? = null
-        getOrderDetails.execute("id1").collect {
-            order = it.data
-        }
+        val result = getOrderDetails.execute("id1").toList()
 
-        assert(order1 == order)
+        assert(result[0].loading)
+
+        val order = result[1].data
+        assert(order == order1)
+
+        assert(!result[1].loading)
+
     }
 }

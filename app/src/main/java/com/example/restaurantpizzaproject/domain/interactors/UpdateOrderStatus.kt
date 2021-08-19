@@ -8,8 +8,10 @@ class UpdateOrderStatus(
 
     suspend fun execute(
         id: String,
-        orderHashMap: HashMap<String, Any>
+        orderHashMap: HashMap<String, Any>,
+        onSuccess: () -> Unit,
+        onFailure: () -> Unit,
     ) {
-        firestore.updateOrderStatus(id, orderHashMap)
+        firestore.updateOrderStatus(id, orderHashMap, onSuccess, onFailure)
     }
 }

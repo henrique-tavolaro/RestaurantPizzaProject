@@ -95,9 +95,14 @@ class PizzariaViewModel @Inject constructor(
         }
     }
 
-    fun updateOrderStatus(id: String, orderHashMap: HashMap<String, Any>){
+    fun updateOrderStatus(
+        id: String,
+        orderHashMap: HashMap<String, Any>,
+        onSuccess: () -> Unit,
+        onFailure: () -> Unit
+    ){
         viewModelScope.launch {
-            updateOrderStatus.execute(id, orderHashMap)
+            updateOrderStatus.execute(id, orderHashMap, onSuccess, onFailure)
         }
     }
 

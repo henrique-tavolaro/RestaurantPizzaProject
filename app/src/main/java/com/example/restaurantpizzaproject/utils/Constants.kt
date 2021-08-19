@@ -1,10 +1,10 @@
 package com.example.restaurantpizzaproject.utils
 
 object OrderStatus {
-    const val OPEN = "Open"
-    const val ACCEPTED = "Accepted"
-    const val CANCELLEDBYCLIENT = "Cancelled by client"
-    const val CANCELLEDBYRESTAURANT = "Cancelled by restaurant"
-    const val DELIVERED = "Delivered"
+    const val OPEN = "Aberto"
+    const val ACCEPTED = "Preparando pedido"
+    const val CANCELLEDBYCLIENT = "Cancelado pelo cliente"
+    const val CANCELLEDBYRESTAURANT = "Cancelado pelo restaurante"
+    const val DELIVERED = "Entregue"
 
 }

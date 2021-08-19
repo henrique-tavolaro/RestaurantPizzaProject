@@ -5,6 +5,7 @@ data class Order(
     val id: String = "",
     val clientId: String = "",
     val clientName: String = "",
+    val observation: String = "",
     val date: String = "",
     val address: String = "",
     val details: List<CartDetail> = listOf(),
